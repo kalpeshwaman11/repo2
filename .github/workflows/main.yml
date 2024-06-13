@@ -33,7 +33,7 @@ jobs:
       run: databricks workspace list
 
     - name: Sync to Databricks
-      run: databricks workspace import_dir --overwrite release /Workspace/Users/kalpesh.azure.subscription@gmail.com/release
+      run: databricks workspace import_dir --overwrite release /Workspace/Users/kalpesh.azure.subscription@gmail.com/dev_release
 
   deploy_prod:
     runs-on: ubuntu-latest
