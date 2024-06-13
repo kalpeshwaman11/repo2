@@ -79,6 +79,7 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         name: delta-tables-dev
+        path: ./delta_tables_dev
 
     - name: Verify Delta Table Directory after Download
       run: ls -l
