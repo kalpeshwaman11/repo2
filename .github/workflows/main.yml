@@ -1,4 +1,3 @@
-
 name: Deploy to Databricks
 
 on:
@@ -35,14 +34,18 @@ jobs:
     - name: Sync to Databricks
       run: databricks workspace import_dir --overwrite release /Workspace/Users/kalpesh.azure.subscription@gmail.com/dev_release
       
-    - name: create delta table directory
-      run: |
-       mkdir ./delta_tables_dev
+    - name: Create Delta Table Directory
+      run: mkdir ./delta_tables_dev
 
-    - name: download tables from dev workspace
-      run: |
-       databricks fs cp --recursive dbfs:/user/hive/warehouse/  ./delta_tables_dev/
-       
+    - name: Download Tables from Dev Workspace
+      run: databricks fs cp --recursive dbfs:/user/hive/warehouse/ ./delta_tables_dev/
+
+    - name: Upload Delta Tables Dev Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: delta-tables-dev
+        path: ./delta_tables_dev/
+
   deploy_prod:
     runs-on: ubuntu-latest
     needs: deploy_dev
@@ -58,12 +61,12 @@ jobs:
 
     - name: Configure Databricks CLI
       env:
-        PROD_DATABRICKS_HOST: ${{ secrets.PROD_DATABRICKS_HOST }}
-        PROD_DATABRICKS_TOKEN: ${{ secrets.PROD_DATABRICKS_TOKEN }}
+        DATABRICKS_HOST: ${{ secrets.PROD_DATABRICKS_HOST }}
+        DATABRICKS_TOKEN: ${{ secrets.PROD_DATABRICKS_TOKEN }}
       run: |
         cat <<EOF | databricks configure --token
-        $PROD_DATABRICKS_HOST
-        $PROD_DATABRICKS_TOKEN
+        $DATABRICKS_HOST
+        $DATABRICKS_TOKEN
         EOF
 
     - name: Validate Databricks CLI Configuration for Production
@@ -72,5 +75,10 @@ jobs:
     - name: Sync to Databricks Production
       run: databricks workspace import_dir --overwrite release /Workspace/Users/kalpesh.azure.subscription@gmail.com/prod_release
 
-    - name: upload delta tables to prod
-      run: databricks fs cp --recursive ./delta_tables_dev/ dbfs:/dbfs:/user/hive/warehouse/
+    - name: Download Delta Tables Dev Artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: delta-tables-dev
+
+    - name: Upload Delta Tables to Prod
+      run: databricks fs cp --recursive ./delta_tables_dev/ dbfs:/user/hive/warehouse/
