@@ -35,10 +35,13 @@ jobs:
       run: databricks workspace import_dir --overwrite release /Workspace/Users/kalpesh.azure.subscription@gmail.com/dev_release
       
     - name: Create Delta Table Directory
-      run: mkdir ./delta_tables_dev
+      run: mkdir -p ./delta_tables_dev
 
     - name: Download Tables from Dev Workspace
       run: databricks fs cp --recursive dbfs:/user/hive/warehouse/ ./delta_tables_dev/
+
+    - name: List Contents of Delta Tables Dev Directory
+      run: ls -l ./delta_tables_dev/
 
     - name: Upload Delta Tables Dev Artifact
       uses: actions/upload-artifact@v3
@@ -79,6 +82,9 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         name: delta-tables-dev
+
+    - name: List Contents of Delta Tables Dev Directory
+      run: ls -l ./delta_tables_dev/
 
     - name: Upload Delta Tables to Prod
       run: databricks fs cp --recursive ./delta_tables_dev/ dbfs:/user/hive/warehouse/
