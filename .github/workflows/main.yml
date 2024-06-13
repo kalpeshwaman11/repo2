@@ -31,9 +31,6 @@ jobs:
     - name: Validate Databricks CLI Configuration
       run: databricks workspace list
 
-    - name: Sync to Databricks
-      run: databricks workspace import_dir --overwrite release /Workspace/Users/kalpesh.azure.subscription@gmail.com/dev_release
-
     - name: Create Delta Table Directory
       run: mkdir -p ./delta_tables_dev
 
@@ -78,9 +75,6 @@ jobs:
     - name: Validate Databricks CLI Configuration for Production
       run: databricks workspace list
 
-    - name: Sync to Databricks Production
-      run: databricks workspace import_dir --overwrite release /Workspace/Users/kalpesh.azure.subscription@gmail.com/prod_release
-
     - name: Download Delta Tables Dev Artifact
       uses: actions/download-artifact@v3
       with:
@@ -88,6 +82,9 @@ jobs:
 
     - name: Verify Delta Table Directory after Download
       run: ls -l
+
+    - name: Verify Contents of Delta Table Directory after Download
+      run: ls -l ./delta_tables_dev/
 
     - name: Upload Delta Tables to Prod
       run: databricks fs cp --recursive ./delta_tables_dev/ dbfs:/user/hive/warehouse/
