@@ -56,6 +56,7 @@ jobs:
       run: |
         mkdir -p exported_tables
         databricks fs cp -r dbfs:/FileStore/tables/ exported_tables/
+        echo "Databricks fs cp command completed"
 
     - name: Verify Exported Tables Directory Creation
       run: ls -l exported_tables
