@@ -49,6 +49,9 @@ jobs:
         name: delta-tables-dev
         path: ./delta_tables_dev/
 
+    - name: List Contents of Source Directory on DBFS
+      run: databricks fs ls dbfs:/FileStore/tables/
+
     - name: Export Delta Tables from Dev
       run: |
         mkdir -p exported_tables
