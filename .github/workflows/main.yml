@@ -1,4 +1,3 @@
-
 name: Deploy to Databricks
 
 on:
@@ -19,7 +18,7 @@ jobs:
         pip install databricks-cli
         pip install urllib3==1.26.6 chardet==3.0.4
 
-    - name: Configure Databricks CLI
+    - name: Configure Databricks CLI for Dev
       env:
         DATABRICKS_HOST: ${{ secrets.DEV_DATABRICKS_HOST }}
         DATABRICKS_TOKEN: ${{ secrets.DEV_DATABRICKS_TOKEN }}
@@ -29,7 +28,7 @@ jobs:
         $DATABRICKS_TOKEN
         EOF
 
-    - name: Validate Databricks CLI Configuration
+    - name: Validate Databricks CLI Configuration for Dev
       run: databricks workspace list
 
     - name: Create Delta Table Directory
@@ -52,9 +51,15 @@ jobs:
 
     - name: Export Delta Tables from Dev
       run: |
-          mkdir -p exported_tables
-          databricks fs cp -r dbfs:/FileStore/tables/ exported_tables/
-          
+        mkdir -p exported_tables
+        databricks fs cp -r dbfs:/FileStore/tables/ exported_tables/
+
+    - name: Upload Exported Tables Dev Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: exported-tables-dev
+        path: ./exported_tables/
+
   deploy_prod:
     runs-on: ubuntu-latest
     needs: deploy_dev
@@ -68,7 +73,7 @@ jobs:
         pip install databricks-cli
         pip install urllib3==1.26.6 chardet==3.0.4
 
-    - name: Configure Databricks CLI
+    - name: Configure Databricks CLI for Prod
       env:
         DATABRICKS_HOST: ${{ secrets.PROD_DATABRICKS_HOST }}
         DATABRICKS_TOKEN: ${{ secrets.PROD_DATABRICKS_TOKEN }}
@@ -78,7 +83,7 @@ jobs:
         $DATABRICKS_TOKEN
         EOF
 
-    - name: Validate Databricks CLI Configuration for Production
+    - name: Validate Databricks CLI Configuration for Prod
       run: databricks workspace list
 
     - name: Download Delta Tables Dev Artifact
@@ -88,16 +93,19 @@ jobs:
         path: ./delta_tables_dev
 
     - name: Verify Delta Table Directory after Download
-      run: ls -l
-
-    - name: Verify Contents of Delta Table Directory after Download
       run: ls -l ./delta_tables_dev/
 
     - name: Upload Delta Tables to Prod
       run: databricks fs cp --recursive ./delta_tables_dev/ dbfs:/user/hive/warehouse/
 
-    - name: Upload Delta Tables to Prod
-      run: |
-          databricks fs cp -r exported_tables/ dbfs:/FileStore/tables/
+    - name: Download Exported Tables Dev Artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: exported-tables-dev
+        path: ./exported_tables/
 
- 	
+    - name: Verify Exported Tables Directory after Download
+      run: ls -l ./exported_tables/
+
+    - name: Upload Exported Tables to Prod
+      run: databricks fs cp --recursive ./exported_tables/ dbfs:/FileStore/tables/
